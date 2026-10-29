@@ -89,6 +89,11 @@ fn main() {
         model_matrix: fit_to_screen(min, max, WIDTH as f32, HEIGHT as f32),
     };
 
+    if std::env::args().any(|arg| arg == "--export-image") {
+        export_image(&uniforms, &vertex_array);
+        return;
+    }
+
     let (mut window, thread) = raylib::init()
         .size(WIDTH as i32, HEIGHT as i32)
         .title("Lab 4: Carga de modelos")
@@ -117,4 +122,16 @@ fn main() {
         render(&mut framebuffer, &uniforms, &vertex_array, mode);
         framebuffer.swap_buffers(&mut window, &thread);
     }
+}
+
+/// Guarda el modelo dibujado en `docs/modelo.png`, sin abrir la ventana.
+fn export_image(uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    std::fs::create_dir_all("docs").expect("No se pudo crear docs/");
+
+    let mut framebuffer = Framebuffer::new(WIDTH, HEIGHT);
+    framebuffer.set_background_color(Vector3::new(0.0, 0.0, 0.0));
+    framebuffer.clear();
+
+    render(&mut framebuffer, uniforms, vertex_array, TriangleMode::Wireframe);
+    framebuffer.export("docs/modelo.png");
 }
