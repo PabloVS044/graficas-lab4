@@ -8,14 +8,11 @@ mod fragment;
 mod shaders;
 mod primitive;
 mod rasterizer;
-mod barycentric;
-mod scanline;
 mod obj;
 
 use framebuffer::Framebuffer;
 use obj::Obj;
 use vertex::Vertex;
-use triangle::TriangleMode;
 use shaders::{vertex_shader, fragment_shader};
 use primitive::primitive_assembly;
 use rasterizer::rasterize;
@@ -61,7 +58,6 @@ fn render(
     framebuffer: &mut Framebuffer,
     uniforms: &Uniforms,
     vertex_array: &[Vertex],
-    mode: TriangleMode,
 ) {
     // 1. Procesamiento de vértices
     let transformed_vertices: Vec<Vertex> = vertex_array
@@ -73,7 +69,7 @@ fn render(
     let triangles = primitive_assembly(&transformed_vertices);
 
     // 3. Rasterización
-    let fragments = rasterize(&triangles, mode);
+    let fragments = rasterize(&triangles);
 
     // 4. Procesamiento de fragmentos
     for fragment in fragments {
@@ -89,7 +85,7 @@ fn render(
 
 fn main() {
     let model = Obj::load(MODEL_PATH).unwrap_or_else(|err| panic!("{err}"));
-    let vertex_array = model.vertex_array(Vector3::new(1.0, 1.0, 1.0));
+    let vertex_array = model.vertex_array();
     let (min, max) = model.bounds();
     let uniforms = Uniforms {
         model_matrix: fit_to_screen(min, max, WIDTH as f32, HEIGHT as f32),
@@ -111,21 +107,9 @@ fn main() {
     framebuffer.set_background_color(Vector3::new(0.0, 0.0, 0.0));
     framebuffer.init_texture(&mut window, &thread);
 
-    let mut mode = TriangleMode::Wireframe;
-
     while !window.window_should_close() {
-        if window.is_key_pressed(KeyboardKey::KEY_ONE) {
-            mode = TriangleMode::Wireframe;
-        }
-        if window.is_key_pressed(KeyboardKey::KEY_TWO) {
-            mode = TriangleMode::FilledBarycentric;
-        }
-        if window.is_key_pressed(KeyboardKey::KEY_THREE) {
-            mode = TriangleMode::FilledScanline;
-        }
-
         framebuffer.clear();
-        render(&mut framebuffer, &uniforms, &vertex_array, mode);
+        render(&mut framebuffer, &uniforms, &vertex_array);
         framebuffer.swap_buffers(&mut window, &thread);
     }
 }
@@ -138,6 +122,6 @@ fn export_image(uniforms: &Uniforms, vertex_array: &[Vertex]) {
     framebuffer.set_background_color(Vector3::new(0.0, 0.0, 0.0));
     framebuffer.clear();
 
-    render(&mut framebuffer, uniforms, vertex_array, TriangleMode::Wireframe);
+    render(&mut framebuffer, uniforms, vertex_array);
     framebuffer.export("docs/modelo.png");
 }

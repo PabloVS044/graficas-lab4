@@ -40,11 +40,7 @@ pub fn vertex_shader(vertex: &Vertex, uniforms: &Uniforms) -> Vertex {
   // Create a new Vertex with the transformed position
   Vertex {
     position: vertex.position,
-    normal: vertex.normal,
-    tex_coords: vertex.tex_coords,
-    color: vertex.color,
     transformed_position,
-    transformed_normal: vertex.normal, // Note: Correct normal transformation is more complex
   }
 }
 
