@@ -10,6 +10,7 @@ mod primitive;
 mod rasterizer;
 mod barycentric;
 mod scanline;
+mod obj;
 
 use framebuffer::Framebuffer;
 use vertex::Vertex;
