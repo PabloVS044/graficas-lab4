@@ -29,25 +29,31 @@ const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 const MODEL_PATH: &str = "assets/nave_graficas.obj";
 
-/// Matriz que escala y traslada el modelo para que su `x` y su `y` queden
-/// centradas en la pantalla y ocupen como máximo el 80% de la ventana.
-/// La `y` se invierte: en el OBJ crece hacia arriba y en pantalla hacia abajo.
+/// Matriz que escala y traslada el modelo para verlo desde arriba: la `x`
+/// del OBJ queda como `x` de pantalla y la `z` como `y`. Con la vista
+/// frontal (`x`, `y`) la nave se veía solo como una silueta.
+///
+/// El modelo queda centrado y ocupa como máximo el 80% de la ventana. La `z`
+/// se invierte para que la punta de la nave apunte hacia arriba.
 fn fit_to_screen(min: Vector3, max: Vector3, width: f32, height: f32) -> Matrix {
     let size_x = (max.x - min.x).max(f32::EPSILON);
-    let size_y = (max.y - min.y).max(f32::EPSILON);
-    let scale = 0.8 * (width / size_x).min(height / size_y);
+    let size_z = (max.z - min.z).max(f32::EPSILON);
+    let scale = 0.8 * (width / size_x).min(height / size_z);
 
     let center_x = (min.x + max.x) / 2.0;
-    let center_y = (min.y + max.y) / 2.0;
+    let center_z = (min.z + max.z) / 2.0;
 
-    // x' = scale * (x - center_x) + width / 2
-    // y' = -scale * (y - center_y) + height / 2
+    // x' =  scale * (x - center_x) + width / 2
+    // y' = -scale * (z - center_z) + height / 2
+    // z' =  scale * y
     let mut matrix = Matrix::identity();
     matrix.m0 = scale;
-    matrix.m5 = -scale;
-    matrix.m10 = scale;
+    matrix.m5 = 0.0;
+    matrix.m9 = -scale;
+    matrix.m6 = scale;
+    matrix.m10 = 0.0;
     matrix.m12 = width / 2.0 - scale * center_x;
-    matrix.m13 = height / 2.0 + scale * center_y;
+    matrix.m13 = height / 2.0 + scale * center_z;
     matrix
 }
 
